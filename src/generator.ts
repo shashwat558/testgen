@@ -2,6 +2,9 @@ import chalk from "chalk"
 import * as fs from 'fs';
 import * as path from "path";
 import { checkFileExists } from "./utils/file.js";
+import { detectFramework, detectLanguage } from "./utils/framework.js";
+import { buildPrompt } from "./prompts/index.js";
+import { callAI } from "./ai/client.js";
 
 
 export async function generateTestCases(filePath: string){
@@ -21,7 +24,24 @@ export async function generateTestCases(filePath: string){
         return;
     }
     
-    const testCases = await generateTestCases(fileContent)
+    
+    const framework = detectFramework();
+
+    if(framework === "unknown"){
+        const message = chalk.bold.yellow(`No framework detected, defaulting to Jest`);
+        console.log(message);
+    }
+
+    const language = detectLanguage();
+
+    const prompt = buildPrompt(fileContent, {framework, filename: filePath})
+    console.log(prompt);
+
+    const testCode = await callAI(prompt)
+    console.log(testCode);
+
+
+
 
     
 }
