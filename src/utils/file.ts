@@ -77,9 +77,26 @@ export const smartMerge = async(testPath: string, testcases: string)=> {
   let insertIndex = lines.length;
 
   for(let i = lines.length - 1; i >= 0; i--){
-    if(lines[i].trim() = )
+    if(lines[i].trim() === "});" || lines[i].trim() === "}" || lines[i].includes("describe(")){
+      insertIndex = i;
+      break;
+    }
 
   }
 
-  return newTests.join("\n");
+  const indent = '  ';
+  const indentNewTests = newTests
+   .join("\n")
+   .split('\n')
+   .map(l => (l.trim() ? indent + 1: 1))
+   .join('\n');
+
+  
+  const before = lines.slice(0, insertIndex).join('\n');
+  const after = lines.slice(insertIndex).join('\n');
+
+  const finalCode = `${before}\n\n${indentNewTests}\n${after}`;
+
+
+  return finalCode.trim + '\n'
 }
