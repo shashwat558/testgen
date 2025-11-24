@@ -40,6 +40,17 @@ export async function generateTestCases(filePath: string){
     const testCode = await callAI(prompt)
     console.log(testCode);
 
+    const testFilePath = filePath.replace(/\.(ts|js|py)$/, "test.$1");
+
+    if(fs.existsSync(testFilePath)){
+        const merged = await smartMerge(fileContent, testCode);
+        if(merged === "existing file content"){
+            console.log(chalk.bold.green(`Test cases already exist in ${testFilePath}`));
+            return;
+        };
+        console.log(`Merging ${coun}`)
+    }
+
 
 
 
