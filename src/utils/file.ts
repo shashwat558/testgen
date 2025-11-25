@@ -11,10 +11,6 @@ export const checkFileExists = async(filePath: string) => {
     }
 }
 
-export const writeTestFile = async(filePath: string, testCases: string)=> {
-    
-    
-}
 
 
 export const smartMerge = async(testPath: string, testcases: string)=> {
@@ -53,17 +49,18 @@ export const smartMerge = async(testPath: string, testcases: string)=> {
       continue;
     }
 
-    const testMatch = line.match(/(test | it)(?:\.w+)?\s*\(\s*['"](.+?)['"]/);
+    const testMatch = line.match(/(test|it)(?:\.w+)?\s*\(\s*['"](.+?)['"]/);
     if(testMatch){
       const title = testMatch[2].trim().toLowerCase();
-      if(!existingTitles.has(title) && !aiTitles.has(title)){
+      if(!existingTitles.has(title)){
         newTests.push(currentBlock + line);
         currentBlock = '';
+
       }
     }
 
     if(inDescribe){
-      currentBlock += line + '/n';
+      currentBlock += line + '\n';
 
     }
 
@@ -88,7 +85,7 @@ export const smartMerge = async(testPath: string, testcases: string)=> {
   const indentNewTests = newTests
    .join("\n")
    .split('\n')
-   .map(l => (l.trim() ? indent + 1: 1))
+   .map(l => (l.trim() ? indent + l: l))
    .join('\n');
 
   
@@ -98,5 +95,5 @@ export const smartMerge = async(testPath: string, testcases: string)=> {
   const finalCode = `${before}\n\n${indentNewTests}\n${after}`;
 
 
-  return finalCode.trim + '\n'
+  return finalCode.trim() + '\n'
 }

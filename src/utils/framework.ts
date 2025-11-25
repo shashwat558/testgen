@@ -1,5 +1,6 @@
 import fs from "fs"
 import path from "path";
+import {glob} from "glob";
 
 export type Framework = 'jest' | 'vitest' | 'mocha' | 'pytest' | 'unknown';
 
@@ -51,7 +52,7 @@ export function detectFramework(cwd: string = process.cwd()): Framework {
 
     const hasTestsFolder = fs.existsSync(path.join(cwd, "__tests__"));
     const hasTestFolder = fs.existsSync(path.join(cwd, "test"));
-    const hasTsFile = fs.globSync("**/*.ts", {cwd}).length > 0;
+    const hasTsFile = glob.sync("**/*.ts", {cwd}).length > 0;
 
     if((hasTestsFolder || hasTestFolder) && hasTsFile){
         return 'jest';
@@ -63,8 +64,8 @@ export function detectFramework(cwd: string = process.cwd()): Framework {
 export type Language = "javascript" | "typescript" | "python" | "unknown";
 export function detectLanguage(cwd: string = process.cwd()): Language {
     const tsConfigPath = fs.existsSync(path.join(cwd, "tsconfig.json"));
-    const hasTsFiles = fs.globSync("**/*.ts", {cwd}).length > 0;
-    const hasPyFiles = fs.globSync("**/*.py", {cwd}).length > 0;
+    const hasTsFiles = glob.sync("**/*.ts", {cwd}).length > 0;
+    const hasPyFiles = glob.sync("**/*.py", {cwd}).length > 0;
 
     if(hasTsFiles || tsConfigPath) return "typescript";
     if(hasPyFiles) return "python";

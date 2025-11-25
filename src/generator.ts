@@ -1,7 +1,7 @@
 import chalk from "chalk"
 import * as fs from 'fs';
 import * as path from "path";
-import { checkFileExists } from "./utils/file.js";
+import { checkFileExists, smartMerge } from "./utils/file.js";
 import { detectFramework, detectLanguage } from "./utils/framework.js";
 import { buildPrompt } from "./prompts/index.js";
 import { callAI } from "./ai/client.js";
@@ -40,21 +40,31 @@ export async function generateTestCases(filePath: string){
     const testCode = await callAI(prompt)
     console.log(testCode);
 
-    const testFilePath = filePath.replace(/\.(ts|js|py)$/, "test.$1");
+    const testFilePath = filePath.replace(/\.(ts|js|py)$/, ".test.$1");
+
 
     if(fs.existsSync(testFilePath)){
-        const merged = await smartMerge(fileContent, testCode);
+        const merged = await smartMerge(testFilePath, testCode);
+        console.log(merged + "=============================================")
+        fs.writeFileSync(testFilePath, merged);
         if(merged === "existing file content"){
             console.log(chalk.bold.green(`Test cases already exist in ${testFilePath}`));
             return;
-        };
-        console.log(`Merging ${coun}`)
-    }
+        } 
+    
+    
 
 
 
 
     
-}
 
+    } else {
+        
+            fs.writeFileSync(testFilePath, testCode);
+            console.log(`Created a new file: ${testFilePath}`);
+        }
+
+    return {preview: testCode}
+}
 
