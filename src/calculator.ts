@@ -14,4 +14,12 @@ function divide(a: number, b: number): number {
     return a / b;
 }
 
-export {add, subtract, multiply, divide}
+function sqrt(a: number){
+    return a * a;
+}
+
+function cubert(a: number){
+    return a * a * a;
+}
+
+export {add, subtract, multiply, divide, sqrt}

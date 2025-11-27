@@ -13,87 +13,75 @@ export const checkFileExists = async(filePath: string) => {
 
 
 
-export const smartMerge = async(testPath: string, testcases: string)=> {
-    const testFileContent = await fs.promises.readFile(testPath, "utf-8");
-    
-    const extractTestTitles = (code: string): Set<string> => {
+
+
+export async function smartMerge(testPath: string, aiCode: string): Promise<string> {
+
+  if (!fs.existsSync(testPath)) {
+    return aiCode.trim() + '\n';
+  }
+
+  const existingCode = await fs.promises.readFile(testPath, 'utf-8');
+
+  const getTitles = (code: string): Set<string> => {
     const titles = new Set<string>();
-
-    
-    const regex = /(?:test|it)(?:\.\w+)?\s*\(\s*['"](.+?)['"]/g;
+    const regex = /(?:test|it)(?:\.\w+)?\s*\(\s*['"`](.+?)['"`]/g;
     let match;
-    while ((match = regex.exec(code)) !== null) {
-      const title = match[1].trim().toLowerCase();
-      titles.add(title);
+    while ((match = regex.exec(code))) {
+      titles.add(match[1].trim().toLowerCase());
     }
-
     return titles;
   };
 
-  const existingTitles = extractTestTitles(testFileContent);
-  const aiTitles = extractTestTitles(testcases);
+  const existingTitles = getTitles(existingCode);
 
-  const newTests: string[] = [];
-  let inDescribe = false;
-  let currentBlock = "";
+  const lines = aiCode.split('\n');
+  const filteredLines: string[] = [];
+  let inTestBlock = false;
+  let currentTestTitle = '';
 
-  for(const line of testcases.split("\n")){
-    if(line.trim().startsWith("describe(")){
-      inDescribe = true;
-      currentBlock += line + "\n";
-      continue;
-    }
-    if(line.trim().startsWith('})') && inDescribe){
-      currentBlock += line + '\n';
-      inDescribe = false;
-      continue;
-    }
+  for (const line of lines) {
+    const testMatch = line.match(/(test|it)(?:\.\w+)?\s*\(\s*['"`](.+?)['"`]/);
+    
+    if (testMatch) {
+      currentTestTitle = testMatch[2].trim().toLowerCase();
+      inTestBlock = true;
 
-    const testMatch = line.match(/(test|it)(?:\.w+)?\s*\(\s*['"](.+?)['"]/);
-    if(testMatch){
-      const title = testMatch[2].trim().toLowerCase();
-      if(!existingTitles.has(title)){
-        newTests.push(currentBlock + line);
-        currentBlock = '';
-
+      if (!existingTitles.has(currentTestTitle)) {
+        filteredLines.push(line);
+      } else {
+        inTestBlock = false;
       }
+    } else if (inTestBlock) {
+      if (!existingTitles.has(currentTestTitle)) {
+        filteredLines.push(line);
+      }
+      if (line.trim().endsWith('});') || line.trim().endsWith('})')) {
+        inTestBlock = false;
+      }
+    } else {
+      filteredLines.push(line);
     }
-
-    if(inDescribe){
-      currentBlock += line + '\n';
-
-    }
-
   }
 
-  if(newTests.length === 0){
-    return testFileContent;
+  const newCode = filteredLines.join('\n').trim() + '\n';
+
+  if (newCode === aiCode.trim() + '\n') {
+    console.log('No new tests to add');
+    return existingCode;
   }
+  const existingLines = existingCode.split('\n');
+  let insertAt = existingLines.length - 1;
 
-  const lines = testFileContent.split("\n");
-  let insertIndex = lines.length;
-
-  for(let i = lines.length - 1; i >= 0; i--){
-    if(lines[i].trim() === "});" || lines[i].trim() === "}" || lines[i].includes("describe(")){
-      insertIndex = i;
+  for (let i = existingLines.length - 1; i >= 0; i--) {
+    if (existingLines[i].trim().startsWith('});') || existingLines[i].trim() === '}') {
+      insertAt = i;
       break;
     }
-
   }
 
-  const indent = '  ';
-  const indentNewTests = newTests
-   .join("\n")
-   .split('\n')
-   .map(l => (l.trim() ? indent + l: l))
-   .join('\n');
+  const before = existingLines.slice(0, insertAt).join('\n');
+  const after = existingLines.slice(insertAt).join('\n');
 
-  
-  const before = lines.slice(0, insertIndex).join('\n');
-  const after = lines.slice(insertIndex).join('\n');
-
-  const finalCode = `${before}\n\n${indentNewTests}\n${after}`;
-
-
-  return finalCode.trim() + '\n'
+  return `${before}\n\n${newCode}\n${after}`;
 }

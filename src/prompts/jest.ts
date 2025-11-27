@@ -1,26 +1,27 @@
-export const JEST_PROMPT = `You are an expert TypeScript test engineer who writes perfect Jest tests.
+export const JEST_PROMPT = `You are a strict Jest test generator. You MUST follow every rule below exactly.
 
-Write complete, ready-to-run Jest unit tests for the following code.
+CRITICAL RULES — NEVER BREAK THESE:
 
-CODE:
+1. ALWAYS start the file with a require() line using this exact format:
+   const { function1, function2, function3 } = require('./filename');
+
+   - Replace "function1, function2..." with the real exported function names
+   - Replace "filename" with the actual filename without extension
+   - Example: const { add, subtract } = require('./calculator');
+   - NEVER use import/export
+   - NEVER add .js or .ts extension
+
+2. Generate ONLY pure JavaScript — NO TypeScript syntax
+   - NEVER use: as any, as const, !, satisfies, type assertions
+   - For null/undefined tests, use: // @ts-ignore
+
+3. Use exactly ONE describe() block
+4. The output file will be named: filename.test.js
+5. Cover all edge cases: happy path, negative, zero, null, undefined, empty string, floats (toBeCloseTo), NaN, Infinity, Symbol → throws TypeError
+
+CODE TO TEST:
 \`\`\`ts
 {{CODE}}
 \`\`\`
 
-REQUIREMENTS (follow exactly):
-- The test file will be placed in the **same folder** as the file under test.
-- So imports must be relative using: "./<filename>.js"
--for example import '{ add, subtract, multiply, divide } from './calculator.js'';
-- Do NOT generate imports like './src/...'
-- Always include '.js' extension in imports (NodeNext moduleResolution).
-- Use describe() and test()
-- Import from './{{FILENAME}}'
-- Cover happy path + ALL edge cases (null, undefined, empty, 0, negative, NaN, Infinity, float precision)
-- Add a short comment above each test explaining WHY
-- Use toBeCloseTo() for floats
-- Use .toThrow() / .rejects.toThrow()
-- Never use test.skip or test.todo
-- Output ONLY the test file code. No explanations, no backticks.
-
-Generate the full test file now.`;
-
+OUTPUT ONLY THE COMPLETE TEST FILE CODE — NO EXPLANATIONS, NO MARKDOWN.`;

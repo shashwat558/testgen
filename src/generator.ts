@@ -40,7 +40,7 @@ export async function generateTestCases(filePath: string){
     const testCode = await callAI(prompt)
     console.log(testCode);
 
-    const testFilePath = filePath.replace(/\.(ts|js|py)$/, ".test.$1");
+    const testFilePath = filePath.replace(/\.(ts|js|py)$/, '.test.js');
 
 
     if(fs.existsSync(testFilePath)){
